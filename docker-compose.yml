@@ -1,0 +1,43 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongo-container
+    hostname: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: development
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb-data:/data/db   
+  redis:
+    image: redis:latest
+    hostname: redis
+    container_name: redis-container
+    ports:
+      - 6379:6379
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+  user-management-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: user-management-services
+    ports:
+      - 3002:3002
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      - MONGODB_URI=mongodb://root:password@mongodb:27017/development?authSource=admin
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=secret
+    volumes:
+      - .:/app
+      - /app/node_modules
+volumes:
+  mongodb-data: 
+  redis-data:
